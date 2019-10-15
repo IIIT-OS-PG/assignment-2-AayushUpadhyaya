@@ -6,12 +6,15 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
+#include <thread>
 #define PORT 8081
 #define EXIT_FAILURE 1
 using namespace std;
 
 char * SERVER_IP[2];
 int SERVER_PORT[2];
+const char * CLIENT_IP1;
+int CLIENT_PORT1;
 
 void readTrackerFile(char *file_name)
 {
@@ -48,11 +51,36 @@ void readTrackerFile(char *file_name)
 
 } //end of function readTrackerFile.
 
+void startClientAsServer(const char *MY_IP,int PORT1)
+{
+   int server_fd=socket(AF_INET,SOCK_STREAM,0);
+   struct sockaddr_in addr;
+   addr.sin_family=AF_INET;
+   addr.sin_port=htons(PORT1);
+   addr.sin_addr.s_addr=inet_addr(MY_IP);
+   int addrlen=sizeof(addr);
+
+   bind(server_fd,(struct sockaddr *)&addr,sizeof(addr));
+
+     
+     
+     int sockfd;
+     listen(server_fd,20);
+
+    while(1)
+  {  	
+    sockfd=accept(server_fd,(struct sockaddr *)&addr,(socklen_t *)&addrlen);
+    close(sockfd);
+
+  }  //end of while loop.
+
+
+}
+
 
 int main(int argc,char *argv[])
 {   int sock=0,valread;
 	pid_t CLIENT_PROCESS_ID=getpid();
-	//cout<<"PID is : "<<CLIENT_PROCESS_ID<<endl;
 	string user_input;
 	struct sockaddr_in serv_addr;
 	char buffer[1024]={0};
@@ -61,6 +89,8 @@ int main(int argc,char *argv[])
     string CLIENT_IP=client_data.substr(0,client_data.find(':'));
     string CLIENT_PORT=client_data.substr(client_data.find(':')+1,client_data.size());
     cout<<"Client IP : "<<CLIENT_IP<<" and Client Port : "<<CLIENT_PORT<<endl;
+    CLIENT_IP1=CLIENT_IP.c_str();
+    CLIENT_PORT1=stoi(CLIENT_PORT);
     cout<<"Server 1 IP : "<<SERVER_IP[0]<<" and PORT : "<<SERVER_PORT[0]<<endl;
     cout<<"Server 2 IP : "<<SERVER_IP[1]<<" and PORT : "<<SERVER_PORT[1]<<endl;
 
@@ -69,6 +99,9 @@ int main(int argc,char *argv[])
 	serv_addr.sin_addr.s_addr=inet_addr("127.0.0.1");
 
 	
+     thread th1(startClientAsServer,CLIENT_IP1,CLIENT_PORT1);
+     th1.detach();
+
     char * writable;
 	while(1)
   {		

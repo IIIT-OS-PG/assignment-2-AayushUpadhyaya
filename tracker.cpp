@@ -50,6 +50,7 @@ void listFilesInGroup(int group_id)
   string filename=to_string(group_id)+"_files.txt";
   ifstream file1(filename);
   string input_line;
+  cout<<"File in Group : "<<group_id<<" are:-----------------------"<<endl;
   while(file1)
   {
     if(getline(file1,input_line))
